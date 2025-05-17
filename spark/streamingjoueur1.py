@@ -13,6 +13,18 @@ schema = StructType() \
     .add("HomeTeam", StringType()) \
     .add("AwayTeam", StringType()) \
     .add("FTR", StringType()) \
+    .add("B365H", StringType()) \
+    .add("B365D", StringType()) \
+    .add("B365A", StringType()) \
+    .add("PSH", StringType()) \
+    .add("PSD", StringType()) \
+    .add("PSA", StringType()) \
+    .add("BbAvH", StringType()) \
+    .add("BbAvD", StringType()) \
+    .add("BbAvA", StringType()) \
+    .add("BbMxH", StringType()) \
+    .add("BbMxD", StringType()) \
+    .add("BbMxA", StringType()) \
     .add("FTHG", StringType()) \
     .add("FTAG", StringType()) \
     .add("HTHG", StringType()) \
@@ -29,11 +41,29 @@ schema = StructType() \
     .add("AY", StringType()) \
     .add("HR", StringType()) \
     .add("AR", StringType()) \
-    .add("Season", StringType())
+    .add("HBP", StringType()) \
+    .add("ABP", StringType()) \
+    .add("Referee", StringType()) \
+    .add("Season", StringType()) \
+    .add("League", StringType())
 
 # Chemins et URI
 root = "/home/jovyan/work/spark"
 mongo_uri = "mongodb://admin:admin@mongodb:27017/football11_matches?authSource=admin"
+
+# Colonnes à conserver (HTR retiré car absent)
+columns_to_keep = [
+    'Div', 'Date', 'HomeTeam', 'AwayTeam',
+    'FTHG', 'FTAG', 'FTR',
+    'HTHG', 'HTAG',
+    'HS', 'AS', 'HST', 'AST',
+    'HC', 'AC',
+    'HF', 'AF',
+    'HY', 'AY', 'HR', 'AR',
+    'GD', 'AGL5', 'HGL5', 'HTP', 'ATP',
+    'ATAFL5', 'HTHFL5', 'ADIL5', 'HDIL5', 'ATFL5', 'HTFL5'
+]
+
 
 # Créer SparkSession avec politique de parsing legacy pour dates
 spark = (
@@ -87,6 +117,12 @@ def process_batch(batch_df, batch_id):
         .withColumn("ATFL5", coalesce(spark_sum("AwayPoints").over(away5_w), lit(0))) \
         .withColumn("HDIL5", coalesce(spark_sum(col("HF")*2 + col("HY")*10 + col("HR")*25).over(home5_w), lit(0))) \
         .withColumn("ADIL5", coalesce(spark_sum(col("AF")*2 + col("AY")*10 + col("AR")*25).over(away5_w), lit(0)))
+
+
+    # Sélectionner uniquement les colonnes spécifiées, ignorer si HTR est absente
+    available_columns = [c for c in columns_to_keep if c in df_feat.columns]
+    df_feat = df_feat.select([col(c) for c in available_columns])
+
 
     # Écriture Parquet & MongoDB
     (df_feat.write.format("parquet").mode("append")
