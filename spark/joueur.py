@@ -15,7 +15,7 @@ producer = KafkaProducer(
 # 2. Paramètres des ligues et saisons
 leagues = ['E0', 'SP1', 'D1', 'I1', 'F1']
 # Génère ['0001','0102',...,'2324']
-seasons = [f"{str(y)[-2:]}{str(y+1)[-2:]}" for y in range(2000, 2024)]
+seasons = [f"{str(y)[-2:]}{str(y+1)[-2:]}" for y in range(2008, 2024)]
 
 # 3. URL de base pour les CSV
 base_url = "https://www.football-data.co.uk/mmz4281"
